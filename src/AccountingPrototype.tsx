@@ -11,13 +11,12 @@ import {
 import {
   addAccountingEntry,
   deleteAccountingEntry,
-  DEMO_USER,
   getAccountingProfile,
   subscribeToAccountingEntries,
   updateAccountingEntry,
   updateAccountingProfile,
   uploadAccountingProofs,
-} from './lib/accountingStorage';
+} from './lib/supabaseStorage';
 import ConfirmModal from './components/ConfirmModal';
 import type {
   AccountingEntry,
@@ -51,7 +50,6 @@ import type {
 } from './types/accountingUi';
 
 const AccountingPrototype: React.FC = () => {
-  const user = DEMO_USER;
   const isDark = false;
   const dateInputRef = useRef<HTMLInputElement | null>(null);
   const [activeTab, setActiveTab] = useState<AccountingTab>('income');
@@ -61,7 +59,7 @@ const AccountingPrototype: React.FC = () => {
   const [entries, setEntries] = useState<AccountingEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [historyFilter, setHistoryFilter] = useState<HistoryFilter>('all');
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(() => getAccountingProfile());
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [entryForm, setEntryForm] = useState<EntryFormState>(createEmptyEntryForm(activeTab === 'expense' ? 'expense' : 'income'));
   const [profileForm, setProfileForm] = useState<ProfileFormState>(() => createProfileForm(userProfile));
   const [proofFiles, setProofFiles] = useState<File[]>([]);
@@ -83,6 +81,7 @@ const AccountingPrototype: React.FC = () => {
   const [referenceNoEdited, setReferenceNoEdited] = useState(false);
 
   useEffect(() => {
+    getAccountingProfile().then((profile) => setUserProfile(profile));
     const unsubscribe = subscribeToAccountingEntries(
       (rows) => {
         setEntries(rows);
@@ -218,7 +217,8 @@ const AccountingPrototype: React.FC = () => {
   }, [customCategories, entries, entryForm.type]);
 
   const refreshProfile = async () => {
-    setUserProfile(getAccountingProfile());
+    const profile = await getAccountingProfile();
+    setUserProfile(profile);
   };
 
   const applyTab = (nextTab: AccountingTab) => {
