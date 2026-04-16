@@ -5,7 +5,7 @@ import type {
   UserProfile,
 } from './accounting';
 
-export type AccountingTab = 'income' | 'expense' | 'summary' | 'history' | 'profile';
+export type AccountingTab = 'income' | 'expense' | 'summary' | 'history' | 'profile' | 'admin';
 export type HistoryFilter = 'all' | 'income' | 'expense';
 
 export type EntryFormState = {

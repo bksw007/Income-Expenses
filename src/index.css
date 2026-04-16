@@ -5,21 +5,21 @@
 @theme {
   --font-family-sans: 'Kanit', sans-serif;
   
-  /* Light theme colors */
-  --color-light-bg: #f8fafc;
+  /* Light theme colors — Anthropic warm palette */
+  --color-light-bg: #FAF7F2;
   --color-light-card: #ffffff;
-  --color-light-text: #1e293b;
-  --color-light-muted: #64748b;
-  
-  /* Dark theme colors (Tokyo Night inspired) */
+  --color-light-text: #1A1818;
+  --color-light-muted: #8C8074;
+
+  /* Dark theme colors */
   --color-dark-bg: #1a1b26;
   --color-dark-card: #24283b;
   --color-dark-text: #c0caf5;
   --color-dark-muted: #565f89;
-  
-  /* Shared accent colors */
-  --color-accent-primary: #7c3aed;
-  --color-accent-secondary: #0ea5e9;
+
+  /* Shared accent colors — Anthropic coral */
+  --color-accent-primary: #D97757;
+  --color-accent-secondary: #C4622D;
   --color-accent-success: #22c55e;
   --color-accent-warning: #f59e0b;
   --color-accent-danger: #ef4444;
@@ -73,7 +73,7 @@
 
 /* Focus styles */
 *:focus-visible {
-  outline: 2px solid #7c3aed;
+  outline: 2px solid #D97757;
   outline-offset: 2px;
 }
 
@@ -843,20 +843,20 @@ select.no-arrow {
     -6px -6px 12px var(--driver-shadow-light);
 }
 
-/* Admin claymorphism theme */
+/* Admin claymorphism theme — Anthropic warm palette */
 .admin-clay {
-  --driver-bg-color: #f0f4f8;
-  --driver-bg-secondary: #e8ecf1;
-  --driver-text: #5d6d7e;
-  --driver-muted: #94a3b8;
-  --driver-title: #34495e;
-  --driver-clay-pink: #ffd1dc;
-  --driver-clay-blue: #d9e6f2;
-  --driver-clay-yellow: #fdfd96;
-  --driver-clay-green: #bce2d8;
-  --driver-surface: rgba(240, 244, 248, 0.9);
-  --driver-shadow-light: rgba(255, 255, 255, 0.9);
-  --driver-shadow-dark: rgba(166, 180, 200, 0.34);
+  --driver-bg-color: #F5EFE0;
+  --driver-bg-secondary: #EDE7D6;
+  --driver-text: #5A5248;
+  --driver-muted: #8C8074;
+  --driver-title: #1A1818;
+  --driver-clay-pink: #F5C4B0;
+  --driver-clay-blue: #D4C9B8;
+  --driver-clay-yellow: #F0E6B8;
+  --driver-clay-green: #C8DEC8;
+  --driver-surface: rgba(245, 239, 224, 0.9);
+  --driver-shadow-light: rgba(255, 252, 245, 0.92);
+  --driver-shadow-dark: rgba(180, 160, 140, 0.32);
   position: relative;
   isolation: isolate;
   color: var(--driver-text);

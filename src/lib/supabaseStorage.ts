@@ -37,6 +37,7 @@ const toProfile = (row: Record<string, unknown>): UserProfile => ({
   signatureName: row.signature_name as string | undefined,
   createdAt: new Date(row.created_at as string).getTime(),
   profileUpdatedAt: new Date(row.updated_at as string).getTime(),
+  status: (row.status as 'pending' | 'approved' | 'rejected') ?? 'pending',
 });
 
 // ── profile ────────────────────────────────────────────────────────────────
@@ -182,5 +183,27 @@ export const updateAccountingEntry = async (
 
 export const deleteAccountingEntry = async (target: AccountingEntry): Promise<void> => {
   const { error } = await supabase.from('accounting_entries').delete().eq('id', target.id);
+  if (error) throw error;
+};
+
+// ── admin functions ────────────────────────────────────────────────────────
+
+export const getAllUserProfiles = async (): Promise<UserProfile[]> => {
+  const { data, error } = await supabase
+    .from('user_profiles')
+    .select('*')
+    .order('created_at', { ascending: true });
+  if (error) throw error;
+  return (data as Record<string, unknown>[]).map(toProfile);
+};
+
+export const setUserStatus = async (
+  targetUid: string,
+  status: 'approved' | 'rejected',
+): Promise<void> => {
+  const { error } = await supabase
+    .from('user_profiles')
+    .update({ status })
+    .eq('uid', targetUid);
   if (error) throw error;
 };

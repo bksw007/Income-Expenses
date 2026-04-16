@@ -37,4 +37,5 @@ export interface UserProfile {
   address?: string;
   signatureName?: string;
   profileUpdatedAt?: number;
+  status?: 'pending' | 'approved' | 'rejected';
 }

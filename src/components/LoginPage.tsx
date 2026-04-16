@@ -21,15 +21,15 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#eef4f6] px-4">
-      <div className="w-full max-w-sm rounded-3xl border border-[#dce7de] bg-white px-6 py-10 shadow-sm text-center">
-        <h1 className="text-2xl font-black text-slate-800">บันทึกรายรับ-รายจ่าย</h1>
-        <p className="mt-2 mb-8 text-sm text-slate-500">เข้าสู่ระบบเพื่อเริ่มใช้งาน</p>
+    <div className="flex min-h-screen items-center justify-center bg-[#FAF7F2] px-4">
+      <div className="w-full max-w-sm rounded-3xl border border-[#E8DFCF] bg-white px-6 py-10 shadow-sm text-center">
+        <h1 className="text-2xl font-black text-[#1A1818]">บันทึกรายรับ-รายจ่าย</h1>
+        <p className="mt-2 mb-8 text-sm text-[#8C8074]">เข้าสู่ระบบเพื่อเริ่มใช้งาน</p>
 
         <button
           onClick={handleGoogleLogin}
           disabled={loading}
-          className="flex w-full items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-60"
+          className="flex w-full items-center justify-center gap-3 rounded-2xl border border-[#E8DFCF] bg-white px-4 py-3 text-sm font-medium text-[#5A5248] shadow-sm transition hover:bg-[#FAF7F2] disabled:opacity-60"
         >
           <svg className="h-5 w-5" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>

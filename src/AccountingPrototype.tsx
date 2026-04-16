@@ -18,6 +18,7 @@ import {
   uploadAccountingProofs,
 } from './lib/supabaseStorage';
 import ConfirmModal from './components/ConfirmModal';
+import UserApproval from './components/UserApproval';
 import type {
   AccountingEntry,
   AccountingEntryType,
@@ -49,7 +50,12 @@ import type {
   ProfileFormState,
 } from './types/accountingUi';
 
-const AccountingPrototype: React.FC = () => {
+interface AccountingPrototypeProps {
+  userProfile: UserProfile | null;
+  onProfileUpdate: (p: UserProfile) => void;
+}
+
+const AccountingPrototype: React.FC<AccountingPrototypeProps> = ({ userProfile: initialProfile, onProfileUpdate }) => {
   const isDark = false;
   const dateInputRef = useRef<HTMLInputElement | null>(null);
   const [activeTab, setActiveTab] = useState<AccountingTab>('income');
@@ -59,7 +65,7 @@ const AccountingPrototype: React.FC = () => {
   const [entries, setEntries] = useState<AccountingEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [historyFilter, setHistoryFilter] = useState<HistoryFilter>('all');
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(initialProfile);
   const [entryForm, setEntryForm] = useState<EntryFormState>(createEmptyEntryForm(activeTab === 'expense' ? 'expense' : 'income'));
   const [profileForm, setProfileForm] = useState<ProfileFormState>(() => createProfileForm(userProfile));
   const [proofFiles, setProofFiles] = useState<File[]>([]);
@@ -80,8 +86,14 @@ const AccountingPrototype: React.FC = () => {
   });
   const [referenceNoEdited, setReferenceNoEdited] = useState(false);
 
+  // alias for backward compat with places that reference `user`
+  const user = userProfile;
+
   useEffect(() => {
-    getAccountingProfile().then((profile) => setUserProfile(profile));
+    setUserProfile(initialProfile);
+  }, [initialProfile]);
+
+  useEffect(() => {
     const unsubscribe = subscribeToAccountingEntries(
       (rows) => {
         setEntries(rows);
@@ -219,6 +231,7 @@ const AccountingPrototype: React.FC = () => {
   const refreshProfile = async () => {
     const profile = await getAccountingProfile();
     setUserProfile(profile);
+    if (profile) onProfileUpdate(profile);
   };
 
   const applyTab = (nextTab: AccountingTab) => {
@@ -452,22 +465,22 @@ const AccountingPrototype: React.FC = () => {
 
   const surfaceClass = isDark
     ? 'rounded-3xl border border-white/10 bg-[#151c2c] text-[#edf2ff]'
-    : 'rounded-3xl border border-[#dce7de] bg-white text-slate-900';
+    : 'rounded-3xl border border-[#E8DFCF] bg-white text-[#1A1818]';
 
   const subSurfaceClass = isDark
     ? 'rounded-2xl border border-white/8 bg-[#0f1524]'
-    : 'rounded-2xl border border-[#e8efe8] bg-[#f8fbf7]';
+    : 'rounded-2xl border border-[#EDE7D6] bg-[#FAF7F2]';
 
-  const mutedTextClass = isDark ? 'text-[#9fb0d4]' : 'text-slate-500';
+  const mutedTextClass = isDark ? 'text-[#9fb0d4]' : 'text-[#8C8074]';
   const inputClass = isDark
-    ? 'w-full rounded-2xl border border-white/10 bg-[#0d1422] px-4 py-2.5 text-sm text-white outline-none transition focus:border-emerald-400'
-    : 'w-full rounded-2xl border border-[#d5e4d7] bg-white px-4 py-2.5 text-sm text-slate-900 outline-none transition focus:border-emerald-500';
+    ? 'w-full rounded-2xl border border-white/10 bg-[#0d1422] px-4 py-2.5 text-sm text-white outline-none transition focus:border-[#D97757]'
+    : 'w-full rounded-2xl border border-[#E8DFCF] bg-white px-4 py-2.5 text-sm text-[#1A1818] outline-none transition focus:border-[#D97757]';
   const tabButtonClass = (selected: boolean) =>
     selected
-      ? 'rounded-2xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white'
+      ? 'rounded-2xl bg-[#D97757] px-4 py-2.5 text-sm font-semibold text-white'
       : isDark
         ? 'rounded-2xl bg-white/5 px-4 py-2.5 text-sm font-semibold text-[#dbe5ff]'
-        : 'rounded-2xl bg-[#edf5ee] px-4 py-2.5 text-sm font-semibold text-slate-700';
+        : 'rounded-2xl bg-[#F5EFE0] px-4 py-2.5 text-sm font-semibold text-[#5A5248]';
   const segmentButtonClass = (selected: boolean, variant: 'income' | 'expense') =>
     selected
       ? variant === 'income'
@@ -475,18 +488,18 @@ const AccountingPrototype: React.FC = () => {
         : 'rounded-2xl border border-rose-500 bg-rose-500/10 px-4 py-2.5 text-sm font-semibold text-rose-600'
       : isDark
         ? 'rounded-2xl border border-white/10 bg-transparent px-4 py-2.5 text-sm font-semibold text-[#dbe5ff]'
-        : 'rounded-2xl border border-[#d5e4d7] bg-white px-4 py-2.5 text-sm font-semibold text-slate-600';
+        : 'rounded-2xl border border-[#E8DFCF] bg-white px-4 py-2.5 text-sm font-semibold text-[#5A5248]';
   const actionButtonClass = isDark
-    ? 'inline-flex min-w-0 items-center justify-center gap-2 rounded-2xl bg-emerald-500 px-4 py-3 text-center text-sm font-semibold leading-tight text-white transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60'
-    : 'inline-flex min-w-0 items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-4 py-3 text-center text-sm font-semibold leading-tight text-white transition hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-60';
+    ? 'inline-flex min-w-0 items-center justify-center gap-2 rounded-2xl bg-[#D97757] px-4 py-3 text-center text-sm font-semibold leading-tight text-white transition hover:bg-[#C4622D] disabled:cursor-not-allowed disabled:opacity-60'
+    : 'inline-flex min-w-0 items-center justify-center gap-2 rounded-2xl bg-[#D97757] px-4 py-3 text-center text-sm font-semibold leading-tight text-white transition hover:bg-[#C4622D] disabled:cursor-not-allowed disabled:opacity-60';
   const ghostButtonClass = isDark
     ? 'inline-flex min-w-0 items-center justify-center gap-2 rounded-2xl border border-white/10 bg-transparent px-4 py-3 text-center text-sm font-semibold leading-tight text-[#e4ecff]'
-    : 'inline-flex min-w-0 items-center justify-center gap-2 rounded-2xl border border-[#d5e4d7] bg-white px-4 py-3 text-center text-sm font-semibold leading-tight text-slate-700';
+    : 'inline-flex min-w-0 items-center justify-center gap-2 rounded-2xl border border-[#E8DFCF] bg-white px-4 py-3 text-center text-sm font-semibold leading-tight text-[#5A5248]';
   const tabGridClass = 'grid grid-cols-2 gap-2 md:grid-cols-3 xl:flex';
   const tabChipClass = (selected: boolean) => `${tabButtonClass(selected)} min-h-[3rem] w-full justify-center px-3`;
   const keypadButtonClass = isDark
     ? 'flex h-[clamp(3.5rem,7.5svh,4.5rem)] w-full items-center justify-center rounded-2xl border border-white/10 bg-[#10192a] px-2 text-[1.35rem] font-black text-white transition hover:bg-white/10 sm:h-[4.75rem] sm:text-2xl'
-    : 'flex h-[clamp(3.5rem,7.5svh,4.5rem)] w-full items-center justify-center rounded-2xl border border-[#dfe9e1] bg-white px-2 text-[1.35rem] font-black text-slate-800 transition hover:bg-[#edf5ee] sm:h-[4.75rem] sm:text-2xl';
+    : 'flex h-[clamp(3.5rem,7.5svh,4.5rem)] w-full items-center justify-center rounded-2xl border border-[#E8DFCF] bg-white px-2 text-[1.35rem] font-black text-[#1A1818] transition hover:bg-[#F5EFE0] sm:h-[4.75rem] sm:text-2xl';
   const attachmentChipClass = `${ghostButtonClass} max-w-full justify-start px-3`;
 
   return (
@@ -494,12 +507,8 @@ const AccountingPrototype: React.FC = () => {
       <section className={`${surfaceClass} overflow-hidden`}>
         <div className="flex flex-col gap-5 px-5 py-6 md:px-8 md:py-7">
           <div className="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
-            <div className="space-y-2 xl:max-w-[calc(100%-39rem)] xl:pr-6">
-              <p className={`text-sm font-semibold uppercase tracking-[0.18em] ${mutedTextClass}`}>งานบัญชี</p>
+            <div className="xl:max-w-[calc(100%-39rem)] xl:pr-6">
               <h1 className="text-3xl font-black tracking-tight md:text-4xl">บันทึกรายรับ-รายจ่าย</h1>
-              <p className={`max-w-3xl text-sm leading-6 ${mutedTextClass}`}>
-                หน้านี้เป็นเมนูย่อยของระบบสำหรับงานรายรับ-รายจ่าย ใช้บันทึกรายการรายวัน เก็บเลขอ้างอิงเอกสารเป็นรายเดือน และสร้าง PDF สำหรับสมุดบัญชีรายรับ-รายจ่ายหรือใบรับรองแทนใบเสร็จรับเงิน
-              </p>
             </div>
 
 	            <div className="grid gap-3 sm:grid-cols-2 xl:w-[36rem] xl:grid-cols-3 2xl:w-[38.25rem]">
@@ -525,7 +534,7 @@ const AccountingPrototype: React.FC = () => {
               </div>
             </div>
           </div>
-          {notice ? <p className="text-sm font-semibold text-emerald-600">{notice}</p> : null}
+          {notice ? <p className="text-sm font-semibold text-[#D97757]">{notice}</p> : null}
         </div>
       </section>
 
@@ -546,6 +555,11 @@ const AccountingPrototype: React.FC = () => {
           <button type="button" onClick={() => applyTab('profile')} className={tabChipClass(activeTab === 'profile')}>
             ข้อมูลผู้เสียภาษี
           </button>
+          {userProfile?.role === 'admin' && (
+            <button type="button" onClick={() => applyTab('admin')} className={tabChipClass(activeTab === 'admin')}>
+              อนุมัติผู้ใช้
+            </button>
+          )}
         </div>
       </section>
 
@@ -620,7 +634,7 @@ const AccountingPrototype: React.FC = () => {
                   className={`accounting-amount-input mt-2.5 min-h-[4rem] w-full rounded-2xl border px-3 py-2 text-right font-black leading-none tracking-tight outline-none sm:mt-3 sm:min-h-[5rem] sm:px-4 sm:py-3 lg:min-h-[4.75rem] lg:px-5 lg:py-2 ${
                     isDark
                       ? 'border-white/10 bg-[#0d1422]'
-                      : 'border-[#dfe9e1] bg-white'
+                      : 'border-[#E8DFCF] bg-white'
                   } ${
                     activeTab === 'income' ? 'text-emerald-600' : 'text-rose-600'
                   }`}
@@ -1235,6 +1249,12 @@ const AccountingPrototype: React.FC = () => {
               <span>{savingProfile ? 'กำลังบันทึก...' : 'บันทึกข้อมูลผู้เสียภาษี'}</span>
             </button>
           </div>
+        </section>
+      )}
+
+      {activeTab === 'admin' && userProfile?.role === 'admin' && (
+        <section className={`${surfaceClass} px-5 py-5 md:px-8 md:py-6`}>
+          <UserApproval currentUserUid={userProfile.uid} />
         </section>
       )}
 
