@@ -19,6 +19,8 @@ import {
 } from './lib/supabaseStorage';
 import ConfirmModal from './components/ConfirmModal';
 import UserApproval from './components/UserApproval';
+import { readSlip } from './lib/ocrSlipService';
+import type { SlipData } from './lib/ocrSlipService';
 import type {
   AccountingEntry,
   AccountingEntryType,
@@ -50,12 +52,12 @@ import type {
   ProfileFormState,
 } from './types/accountingUi';
 
-interface AccountingPrototypeProps {
+interface AccountingProps {
   userProfile: UserProfile | null;
   onProfileUpdate: (p: UserProfile) => void;
 }
 
-const AccountingPrototype: React.FC<AccountingPrototypeProps> = ({ userProfile: initialProfile, onProfileUpdate }) => {
+const Accounting: React.FC<AccountingProps> = ({ userProfile: initialProfile, onProfileUpdate }) => {
   const isDark = false;
   const dateInputRef = useRef<HTMLInputElement | null>(null);
   const [activeTab, setActiveTab] = useState<AccountingTab>('income');
@@ -72,6 +74,8 @@ const AccountingPrototype: React.FC<AccountingPrototypeProps> = ({ userProfile: 
   const [existingProofUrls, setExistingProofUrls] = useState<string[]>([]);
   const [savingEntry, setSavingEntry] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
+  const [ocrLoading, setOcrLoading] = useState(false);
+  const [ocrResult, setOcrResult] = useState<SlipData | null>(null);
   const [notice, setNotice] = useState('');
   const [alertModal, setAlertModal] = useState<AlertModalState>({
     isOpen: false,
@@ -243,6 +247,29 @@ const AccountingPrototype: React.FC<AccountingPrototypeProps> = ({ userProfile: 
     setExistingProofUrls([]);
     setProofFiles([]);
     setReferenceNoEdited(false);
+    setOcrResult(null);
+  };
+
+  const handleOcrSlip = async (file: File) => {
+    setOcrLoading(true);
+    setOcrResult(null);
+    const { data, error } = await readSlip(file);
+    setOcrLoading(false);
+    if (error) {
+      openAlertModal('อ่านสลิปไม่สำเร็จ', error);
+      return;
+    }
+    if (!data) return;
+    setOcrResult(data);
+    // Auto-fill form fields
+    setEntryForm((prev) => ({
+      ...prev,
+      amountInput: data.amount != null ? String(data.amount) : prev.amountInput,
+      transactionDate: data.date ?? prev.transactionDate,
+      description: prev.description || (data.senderName ? `โอนจาก ${data.senderName}` : prev.description),
+      counterpartyName: prev.counterpartyName || data.senderName || '',
+    }));
+    showNotice('อ่านสลิปสำเร็จ');
   };
 
   const showNotice = (message: string) => {
@@ -796,18 +823,68 @@ const AccountingPrototype: React.FC<AccountingPrototypeProps> = ({ userProfile: 
                       แนบสลิป ใบเสร็จ รูปถ่ายสินค้า หรือหลักฐานประกอบได้หลายไฟล์
                     </p>
                   </div>
-                  <label className={`${ghostButtonClass} w-full justify-center md:w-auto`}>
-                    <Upload size={16} />
-                    <span>เพิ่มไฟล์แนบ</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      multiple
-                      className="hidden"
-                      onChange={(event) => setProofFiles(Array.from(event.target.files || []))}
-                    />
-                  </label>
+                  <div className="flex w-full gap-2 md:w-auto">
+                    {/* ปุ่มอ่านสลิป */}
+                    <label className={`${ghostButtonClass} flex-1 justify-center md:flex-none`}>
+                      {ocrLoading ? (
+                        <>
+                          <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#D97757] border-t-transparent" />
+                          <span>กำลังอ่าน...</span>
+                        </>
+                      ) : (
+                        <>
+                          <ImageIcon size={16} />
+                          <span>อ่านสลิป</span>
+                        </>
+                      )}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        disabled={ocrLoading}
+                        onChange={(event) => {
+                          const file = event.target.files?.[0];
+                          if (file) {
+                            setProofFiles((prev) => [...prev, file]);
+                            void handleOcrSlip(file);
+                          }
+                          event.target.value = '';
+                        }}
+                      />
+                    </label>
+                    {/* ปุ่มเพิ่มไฟล์แนบ */}
+                    <label className={`${ghostButtonClass} flex-1 justify-center md:flex-none`}>
+                      <Upload size={16} />
+                      <span>เพิ่มไฟล์</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        className="hidden"
+                        onChange={(event) => setProofFiles((prev) => [...prev, ...Array.from(event.target.files || [])])}
+                      />
+                    </label>
+                  </div>
                 </div>
+
+                {/* OCR Result preview */}
+                {ocrResult && (
+                  <div className={`mt-4 rounded-2xl border border-[#E8DFCF] bg-white px-4 py-3 text-sm`}>
+                    <p className="mb-2 font-semibold text-[#D97757]">
+                      ผลการอ่านสลิป
+                      <span className={`ml-2 text-xs font-normal ${ocrResult.confidence === 'high' ? 'text-emerald-600' : ocrResult.confidence === 'medium' ? 'text-amber-600' : 'text-rose-500'}`}>
+                        ({ocrResult.confidence === 'high' ? 'ความแม่นยำสูง' : ocrResult.confidence === 'medium' ? 'ปานกลาง' : 'ต่ำ'})
+                      </span>
+                    </p>
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-[#5A5248]">
+                      {ocrResult.amount != null && <><span className="text-[#8C8074]">จำนวนเงิน</span><span className="font-semibold">{ocrResult.amount.toLocaleString()} บาท</span></>}
+                      {ocrResult.date && <><span className="text-[#8C8074]">วันที่</span><span>{ocrResult.date}{ocrResult.time ? ` ${ocrResult.time}` : ''}</span></>}
+                      {ocrResult.senderName && <><span className="text-[#8C8074]">ผู้โอน</span><span>{ocrResult.senderName}{ocrResult.senderBank ? ` (${ocrResult.senderBank})` : ''}</span></>}
+                      {ocrResult.receiverName && <><span className="text-[#8C8074]">ผู้รับ</span><span>{ocrResult.receiverName}{ocrResult.receiverBank ? ` (${ocrResult.receiverBank})` : ''}</span></>}
+                      {ocrResult.referenceNo && <><span className="text-[#8C8074]">เลขอ้างอิง</span><span>{ocrResult.referenceNo}</span></>}
+                    </div>
+                  </div>
+                )}
 
                 {(proofFiles.length > 0 || existingProofUrls.length > 0) ? (
                   <div className="mt-4 flex flex-wrap gap-2">
@@ -1283,4 +1360,4 @@ const AccountingPrototype: React.FC<AccountingPrototypeProps> = ({ userProfile: 
   );
 };
 
-export default AccountingPrototype;
+export default Accounting;

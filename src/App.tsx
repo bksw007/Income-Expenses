@@ -6,7 +6,7 @@ import type { UserProfile } from './types/accounting';
 import LoginPage from './components/LoginPage';
 import Navbar from './components/Navbar';
 import PendingApproval from './components/PendingApproval';
-import AccountingPrototype from './AccountingPrototype';
+import Accounting from './Accounting';
 
 const App: React.FC = () => {
   const [session, setSession] = useState<Session | null | undefined>(undefined);
@@ -79,7 +79,7 @@ const App: React.FC = () => {
       {navbar}
       <main className="admin-clay pt-14 text-[#1A1818]">
         <div className="px-4 py-4 md:px-6">
-          <AccountingPrototype
+          <Accounting
             userProfile={userProfile}
             onProfileUpdate={setUserProfile}
           />
